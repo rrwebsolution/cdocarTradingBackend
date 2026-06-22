@@ -1,18 +1,23 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DeedOfSaleController;
+use App\Http\Controllers\Api\FinancingRecordController;
 use App\Http\Controllers\Api\JobOrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PreSaleRepairController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SalesTransactionController;
 use App\Http\Controllers\Api\ServiceRequestController;
 use App\Http\Controllers\Api\StaffController;
+use App\Http\Controllers\Api\SystemDocumentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VehicleController;
+use App\Http\Controllers\Api\VehicleReleaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +43,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('payments', PaymentController::class)->except(['show']);
     Route::apiResource('service-requests', ServiceRequestController::class)->except(['show']);
     Route::apiResource('job-orders', JobOrderController::class)->except(['show']);
+    Route::apiResource('financing-records', FinancingRecordController::class);
+    Route::apiResource('system-documents', SystemDocumentController::class);
+    Route::apiResource('vehicle-releases', VehicleReleaseController::class);
+    Route::apiResource('pre-sale-repairs', PreSaleRepairController::class);
+    Route::apiResource('activity-logs', ActivityLogController::class)->only(['index', 'show', 'store']);
     Route::get('/sales-transactions/{salesTransaction}/deed-of-sale', [DeedOfSaleController::class, 'show']);
     Route::get('/sales-transactions/{salesTransaction}/deed-of-sale/pdf', [DeedOfSaleController::class, 'pdf']);
     Route::get('/reports/summary', [ReportController::class, 'index']);
