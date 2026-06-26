@@ -2,18 +2,27 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-test('users can register and receive an api token', function () {
-    $response = $this->postJson('/api/register', [
+test('users can register for admin approval', function () {
+    Storage::fake('public');
+
+    $response = $this->post('/api/register', [
+        'address' => 'Cagayan de Oro City',
         'name' => 'Test User',
+        'mobile_number' => '09123456789',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'username' => 'testuser',
+        'valid_id_file' => UploadedFile::fake()->image('valid-id.jpg'),
+        'valid_id_type' => 'Driver License',
         'device_name' => 'test-device',
     ]);
 
@@ -21,15 +30,62 @@ test('users can register and receive an api token', function () {
         ->assertCreated()
         ->assertJsonStructure([
             'user' => ['id', 'name', 'email', 'role'],
-            'token',
-            'token_type',
+            'message',
         ])
-        ->assertJsonPath('user.role.name', 'Admin')
-        ->assertJsonPath('token_type', 'Bearer');
+        ->assertJsonPath('user.role.name', 'Customer')
+        ->assertJsonPath('message', 'Registration submitted for admin approval.');
 
     $this->assertDatabaseHas('users', [
         'email' => 'test@example.com',
+        'status' => 'inactive',
+        'username' => 'testuser',
     ]);
+
+    $this->assertDatabaseHas('customers', [
+        'contact' => '09123456789',
+        'email' => 'test@example.com',
+        'status' => 'pending',
+        'valid_id_type' => 'Driver License',
+    ]);
+
+    $customer = \App\Models\Customer::where('email', 'test@example.com')->firstOrFail();
+    expect($customer->valid_id_url)->not->toBeNull();
+
+    $this->postJson('/api/login', [
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'device_name' => 'test-device',
+    ])->assertForbidden();
+});
+
+test('approving a customer activates the linked user account', function () {
+    $user = User::factory()->create([
+        'email' => 'pending@example.com',
+        'password' => Hash::make('password'),
+        'status' => 'inactive',
+    ]);
+    $customer = \App\Models\Customer::create([
+        'user_id' => $user->id,
+        'name' => 'Pending Customer',
+        'email' => 'pending@example.com',
+        'status' => 'pending',
+    ]);
+    $admin = User::factory()->create();
+
+    $this->actingAs($admin, 'sanctum')->patchJson("/api/customers/{$customer->id}", [
+        'status' => 'approved',
+    ])->assertOk();
+
+    $this->assertDatabaseHas('users', [
+        'email' => 'pending@example.com',
+        'status' => 'active',
+    ]);
+
+    $this->postJson('/api/login', [
+        'email' => 'pending@example.com',
+        'password' => 'password',
+        'device_name' => 'test-device',
+    ])->assertOk();
 });
 
 test('users can login and receive an api token', function () {
@@ -52,6 +108,16 @@ test('users can login and receive an api token', function () {
             'token_type',
         ])
         ->assertJsonPath('token_type', 'Bearer');
+});
+
+test('vite frontend origin can make api preflight requests', function () {
+    $this->withHeaders([
+        'Origin' => 'http://localhost:5173',
+        'Access-Control-Request-Method' => 'POST',
+        'Access-Control-Request-Headers' => 'content-type, accept',
+    ])->optionsJson('/api/login')
+        ->assertNoContent()
+        ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
 });
 
 test('authenticated users can retrieve their profile', function () {

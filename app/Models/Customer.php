@@ -17,6 +17,9 @@ class Customer extends Model
         'email',
         'contact',
         'address',
+        'valid_id_number',
+        'valid_id_type',
+        'valid_id_url',
         'status',
     ];
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
@@ -11,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -25,9 +27,14 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $request->validate([
+            'address' => ['required', 'string'],
             'name' => ['required', 'string', 'max:255'],
+            'mobile_number' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'username' => ['required', 'string', 'max:255', 'unique:'.User::class],
+            'valid_id_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'valid_id_type' => ['required', 'string', 'max:255'],
             'device_name' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -37,13 +44,28 @@ class AuthController extends Controller
             'role_id' => $customerRole->id,
             'name' => $request->string('name'),
             'email' => $request->string('email'),
-            'status' => 'active',
+            'username' => $request->string('username'),
+            'status' => 'inactive',
             'password' => Hash::make($request->string('password')),
+        ]);
+
+        Customer::create([
+            'user_id' => $user->id,
+            'name' => $request->string('name'),
+            'email' => $request->string('email'),
+            'contact' => $request->string('mobile_number'),
+            'address' => $request->string('address'),
+            'valid_id_url' => Storage::url($request->file('valid_id_file')->store('valid-ids', 'public')),
+            'valid_id_type' => $request->string('valid_id_type'),
+            'status' => 'pending',
         ]);
 
         event(new Registered($user));
 
-        return $this->tokenResponse($user, $request->string('device_name', 'api-token')->toString(), 201);
+        return response()->json([
+            'message' => 'Registration submitted for admin approval.',
+            'user' => $user->load('role'),
+        ], 201);
     }
 
     /**
@@ -54,16 +76,27 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['nullable', 'email'],
+            'login' => ['nullable', 'string'],
+            'login_type' => ['nullable', 'in:email,username'],
             'password' => ['required', 'string'],
             'device_name' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $user = User::where('email', $request->string('email'))->first();
+        $loginType = $request->string('login_type', 'email')->toString();
+        $login = $request->string('login', $request->string('email')->toString())->toString();
+
+        if (! $login) {
+            throw ValidationException::withMessages([
+                'email' => ['Login credential is required.'],
+            ]);
+        }
+
+        $user = User::where($loginType === 'username' ? 'username' : 'email', $login)->first();
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'email' => ['Email address was not found.'],
+                'email' => [$loginType === 'username' ? 'Username was not found.' : 'Email address was not found.'],
             ]);
         }
 

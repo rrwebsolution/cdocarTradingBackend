@@ -14,7 +14,7 @@ class CustomerController extends Controller
 
     public function index(): JsonResponse
     {
-        return $this->indexResponse(Customer::class, ['user:id,name,email']);
+        return $this->indexResponse(Customer::class, ['user:id,name,email,status']);
     }
 
     public function store(Request $request): JsonResponse
@@ -24,7 +24,19 @@ class CustomerController extends Controller
 
     public function update(Request $request, Customer $customer): JsonResponse
     {
-        $customer->update($this->validated($request, true));
+        $validated = $this->validated($request, true);
+
+        $customer->update($validated);
+
+        if (array_key_exists('status', $validated) && $customer->user) {
+            $normalizedStatus = strtolower((string) $validated['status']);
+
+            $customer->user->update([
+                'status' => in_array($normalizedStatus, ['active', 'approved'], true)
+                    ? 'active'
+                    : 'inactive',
+            ]);
+        }
 
         return $this->updatedResponse($customer->fresh('user'));
     }
@@ -45,6 +57,9 @@ class CustomerController extends Controller
             'name' => [$updating ? 'sometimes' : 'required', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'max:255'],
             'user_id' => ['nullable', 'exists:users,id'],
+            'valid_id_number' => ['nullable', 'string', 'max:255'],
+            'valid_id_type' => ['nullable', 'string', 'max:255'],
+            'valid_id_url' => ['nullable', 'string', 'max:2048'],
         ]);
     }
 }

@@ -12,19 +12,32 @@ class Vehicle extends Model
 
     protected $fillable = [
         'name',
+        'stock_no',
         'brand',
         'model',
         'year',
+        'variant',
         'color',
+        'transmission',
+        'fuel_type',
         'engine_number',
         'chassis_number',
         'plate_number',
         'mileage',
         'purchase_price',
         'selling_price',
+        'reservation_fee',
         'location',
         'condition',
+        'or_cr_number',
+        'registration_expiry',
+        'insurance',
         'photo_url',
+        'interior_photo_urls',
+        'exterior_photo_urls',
+        'description',
+        'features',
+        'remarks',
         'status',
     ];
 
@@ -32,7 +45,11 @@ class Vehicle extends Model
     {
         return [
             'purchase_price' => 'decimal:2',
+            'reservation_fee' => 'decimal:2',
             'selling_price' => 'decimal:2',
+            'interior_photo_urls' => 'array',
+            'exterior_photo_urls' => 'array',
+            'registration_expiry' => 'date',
             'year' => 'integer',
         ];
     }
