@@ -18,6 +18,7 @@ class ServiceRequest extends Model
         'service_type',
         'issue',
         'photo_url',
+        'preferred_service_date',
         'progress',
         'status',
     ];

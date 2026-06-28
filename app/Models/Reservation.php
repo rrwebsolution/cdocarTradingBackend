@@ -15,6 +15,7 @@ class Reservation extends Model
         'customer_id',
         'vehicle_id',
         'amount',
+        'payment_method',
         'reserved_at',
         'expires_at',
         'status',

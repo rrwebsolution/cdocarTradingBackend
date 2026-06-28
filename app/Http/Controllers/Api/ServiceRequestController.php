@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ServiceRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceRequestController extends Controller
 {
@@ -19,12 +20,24 @@ class ServiceRequestController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        return $this->storedResponse(ServiceRequest::create($this->validated($request)));
+        $validated = $this->validated($request);
+
+        if ($request->hasFile('photo')) {
+            $validated['photo_url'] = Storage::url($request->file('photo')->store('service-requests', 'public'));
+        }
+
+        return $this->storedResponse(ServiceRequest::create($validated));
     }
 
     public function update(Request $request, ServiceRequest $serviceRequest): JsonResponse
     {
-        $serviceRequest->update($this->validated($request, true));
+        $validated = $this->validated($request, true);
+
+        if ($request->hasFile('photo')) {
+            $validated['photo_url'] = Storage::url($request->file('photo')->store('service-requests', 'public'));
+        }
+
+        $serviceRequest->update($validated);
 
         return $this->updatedResponse($serviceRequest->fresh(['customer', 'vehicle', 'jobOrder']));
     }
@@ -41,7 +54,9 @@ class ServiceRequestController extends Controller
         return $request->validate([
             'customer_id' => [$updating ? 'sometimes' : 'required', 'exists:customers,id'],
             'issue' => ['nullable', 'string'],
+            'photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'photo_url' => ['nullable', 'string', 'max:2048'],
+            'preferred_service_date' => ['nullable', 'date'],
             'progress' => ['nullable', 'string', 'max:255'],
             'reference' => [$updating ? 'sometimes' : 'required', 'string', 'max:255'],
             'service_type' => [$updating ? 'sometimes' : 'required', 'string', 'max:255'],
