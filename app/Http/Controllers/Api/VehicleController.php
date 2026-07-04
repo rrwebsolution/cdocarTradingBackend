@@ -59,11 +59,17 @@ class VehicleController extends Controller
         }
 
         if ($request->hasFile('interior_photos')) {
-            $validated['interior_photo_urls'] = $this->storePhotoCollection($request->file('interior_photos'));
+            $validated['interior_photo_urls'] = [
+                ...($vehicle->interior_photo_urls ?? []),
+                ...$this->storePhotoCollection($request->file('interior_photos')),
+            ];
         }
 
         if ($request->hasFile('exterior_photos')) {
-            $validated['exterior_photo_urls'] = $this->storePhotoCollection($request->file('exterior_photos'));
+            $validated['exterior_photo_urls'] = [
+                ...($vehicle->exterior_photo_urls ?? []),
+                ...$this->storePhotoCollection($request->file('exterior_photos')),
+            ];
         }
 
         unset($validated['main_photo'], $validated['photo'], $validated['interior_photos'], $validated['exterior_photos']);

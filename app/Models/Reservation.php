@@ -19,6 +19,7 @@ class Reservation extends Model
         'reserved_at',
         'expires_at',
         'status',
+        'remarks',
     ];
 
     protected function casts(): array

@@ -44,6 +44,7 @@ class ReservationController extends Controller
             'expires_at' => ['nullable', 'date'],
             'payment_method' => ['nullable', 'string', 'max:255'],
             'reference' => [$updating ? 'sometimes' : 'required', 'string', 'max:255'],
+            'remarks' => ['nullable', 'string'],
             'reserved_at' => ['nullable', 'date'],
             'status' => ['nullable', 'string', 'max:255'],
             'vehicle_id' => [$updating ? 'sometimes' : 'required', 'exists:vehicles,id'],

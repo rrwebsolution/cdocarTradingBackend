@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\CrudResponses;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Payment;
+use App\Models\SalesTransaction;
+use App\Models\SystemDocument;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,6 +18,37 @@ class CustomerController extends Controller
     public function index(): JsonResponse
     {
         return $this->indexResponse(Customer::class, ['user:id,name,email,status']);
+    }
+
+    public function summary(Customer $customer): JsonResponse
+    {
+        $customer->load('user:id,name,email,status');
+
+        $salesTransactions = SalesTransaction::query()
+            ->where('customer_id', $customer->id)
+            ->with(['vehicle', 'payments'])
+            ->latest('id')
+            ->get();
+
+        $documents = SystemDocument::query()
+            ->where('customer_id', $customer->id)
+            ->latest('id')
+            ->get();
+
+        $payments = Payment::query()
+            ->where('customer_id', $customer->id)
+            ->with('salesTransaction:id,reference')
+            ->latest('id')
+            ->get();
+
+        return response()->json([
+            'data' => [
+                'customer' => $customer,
+                'sales_transactions' => $salesTransactions,
+                'documents' => $documents,
+                'payments' => $payments,
+            ],
+        ]);
     }
 
     public function store(Request $request): JsonResponse

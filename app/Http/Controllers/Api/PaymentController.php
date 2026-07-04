@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
@@ -19,7 +20,13 @@ class PaymentController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $payment = Payment::create($this->validated($request));
+        $validated = $this->validated($request);
+
+        if ($request->hasFile('proof')) {
+            $validated['proof_url'] = Storage::url($request->file('proof')->store('payments', 'public'));
+        }
+
+        $payment = Payment::create($validated);
         $this->syncSaleTotals($payment);
 
         return $this->storedResponse($payment->load(['customer', 'salesTransaction']));
@@ -27,7 +34,13 @@ class PaymentController extends Controller
 
     public function update(Request $request, Payment $payment): JsonResponse
     {
-        $payment->update($this->validated($request, true));
+        $validated = $this->validated($request, true);
+
+        if ($request->hasFile('proof')) {
+            $validated['proof_url'] = Storage::url($request->file('proof')->store('payments', 'public'));
+        }
+
+        $payment->update($validated);
         $this->syncSaleTotals($payment);
 
         return $this->updatedResponse($payment->fresh(['customer', 'salesTransaction']));
@@ -39,7 +52,7 @@ class PaymentController extends Controller
         $payment->delete();
 
         if ($sale) {
-            $paid = $sale->payments()->sum('amount');
+            $paid = $sale->payments()->where('status', 'Approved')->sum('amount');
             $sale->update([
                 'paid_amount' => $paid,
                 'balance' => $sale->total_amount - $paid,
@@ -56,10 +69,13 @@ class PaymentController extends Controller
             'customer_id' => [$updating ? 'sometimes' : 'required', 'exists:customers,id'],
             'method' => ['nullable', 'string', 'max:255'],
             'paid_at' => ['nullable', 'date'],
+            'proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'proof_url' => ['nullable', 'string', 'max:2048'],
             'receipt_number' => [$updating ? 'sometimes' : 'required', 'string', 'max:255'],
             'sales_transaction_id' => [$updating ? 'sometimes' : 'required', 'exists:sales_transactions,id'],
             'status' => ['nullable', 'string', 'max:255'],
+            'verified_at' => ['nullable', 'date'],
+            'verified_by' => ['nullable', 'string', 'max:255'],
         ]);
     }
 
@@ -71,11 +87,10 @@ class PaymentController extends Controller
             return;
         }
 
-        $paid = $sale->payments()->sum('amount');
+        $paid = $sale->payments()->where('status', 'Approved')->sum('amount');
         $sale->update([
             'paid_amount' => $paid,
             'balance' => $sale->total_amount - $paid,
-            'status' => ($sale->total_amount - $paid) <= 0 ? 'paid' : 'partial',
         ]);
     }
 }

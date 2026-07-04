@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PreSaleRepairController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\SalesInvoiceController;
 use App\Http\Controllers\Api\SalesTransactionController;
 use App\Http\Controllers\Api\ServiceRequestController;
 use App\Http\Controllers\Api\StaffController;
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::delete('/roles/{role}', [RoleController::class, 'destroy']);
     Route::apiResource('vehicles', VehicleController::class)->except(['show']);
     Route::apiResource('customers', CustomerController::class)->except(['show']);
+    Route::get('/customers/{customer}/summary', [CustomerController::class, 'summary']);
     Route::apiResource('staff', StaffController::class)->except(['show']);
     Route::apiResource('reservations', ReservationController::class)->except(['show']);
     Route::apiResource('sales-transactions', SalesTransactionController::class)->except(['show']);
@@ -50,7 +52,17 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('activity-logs', ActivityLogController::class)->only(['index', 'show', 'store']);
     Route::get('/sales-transactions/{salesTransaction}/deed-of-sale', [DeedOfSaleController::class, 'show']);
     Route::get('/sales-transactions/{salesTransaction}/deed-of-sale/pdf', [DeedOfSaleController::class, 'pdf']);
+    Route::get('/sales-transactions/{salesTransaction}/invoice', [SalesInvoiceController::class, 'show']);
+    Route::get('/sales-transactions/{salesTransaction}/invoice/pdf', [SalesInvoiceController::class, 'pdf']);
     Route::get('/reports/summary', [ReportController::class, 'index']);
+    Route::get('/reports/sales/pdf', [ReportController::class, 'salesPdf']);
+    Route::get('/reports/reservations/pdf', [ReportController::class, 'reservationsPdf']);
+    Route::get('/reports/payments/pdf', [ReportController::class, 'paymentsPdf']);
+    Route::get('/reports/vehicles/pdf', [ReportController::class, 'vehiclesPdf']);
+    Route::get('/reports/customers/pdf', [ReportController::class, 'customersPdf']);
+    Route::get('/reports/documents/pdf', [ReportController::class, 'documentsPdf']);
+    Route::get('/reports/job-orders/pdf', [ReportController::class, 'jobOrdersPdf']);
+    Route::get('/reports/service-requests/pdf', [ReportController::class, 'serviceRequestsPdf']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/user', function (Request $request) {

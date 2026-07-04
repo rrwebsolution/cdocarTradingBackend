@@ -6,40 +6,27 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Payment extends Model
+class SalesInvoice extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'receipt_number',
+        'reference',
         'sales_transaction_id',
-        'customer_id',
-        'amount',
-        'method',
-        'proof_url',
-        'status',
-        'paid_at',
-        'verified_by',
-        'verified_at',
-        'remarks',
+        'generated_at',
+        'document_data',
     ];
 
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:2',
-            'paid_at' => 'date',
-            'verified_at' => 'date',
+            'document_data' => 'array',
+            'generated_at' => 'date',
         ];
     }
 
     public function salesTransaction(): BelongsTo
     {
         return $this->belongsTo(SalesTransaction::class);
-    }
-
-    public function customer(): BelongsTo
-    {
-        return $this->belongsTo(Customer::class);
     }
 }
