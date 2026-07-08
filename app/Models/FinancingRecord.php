@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class FinancingRecord extends Model
 {
     protected $fillable = [
         'reference',
         'customer_id',
+        'customer_location_type',
         'vehicle_id',
         'sales_transaction_id',
         'financing_company',
@@ -18,6 +20,7 @@ class FinancingRecord extends Model
         'down_payment',
         'approved_at',
         'documents',
+        'requirements_submitted_at',
         'remarks',
         'status',
     ];
@@ -29,6 +32,7 @@ class FinancingRecord extends Model
             'approved_at' => 'date',
             'documents' => 'array',
             'down_payment' => 'decimal:2',
+            'requirements_submitted_at' => 'date',
         ];
     }
 
@@ -45,5 +49,10 @@ class FinancingRecord extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function reservation(): HasOne
+    {
+        return $this->hasOne(Reservation::class);
     }
 }

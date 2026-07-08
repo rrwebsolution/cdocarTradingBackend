@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DeedOfSaleController;
 use App\Http\Controllers\Api\FinancingRecordController;
+use App\Http\Controllers\Api\IdScanController;
 use App\Http\Controllers\Api\JobOrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PreSaleRepairController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReservationController;
@@ -23,6 +25,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register/scan-id', [IdScanController::class, 'scan']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
@@ -40,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::apiResource('customers', CustomerController::class)->except(['show']);
     Route::get('/customers/{customer}/summary', [CustomerController::class, 'summary']);
     Route::apiResource('staff', StaffController::class)->except(['show']);
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
     Route::apiResource('reservations', ReservationController::class)->except(['show']);
     Route::apiResource('sales-transactions', SalesTransactionController::class)->except(['show']);
     Route::apiResource('payments', PaymentController::class)->except(['show']);

@@ -35,6 +35,7 @@ class AuthController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'valid_id_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'valid_id_type' => ['required', 'string', 'max:255'],
+            'valid_id_number' => ['nullable', 'string', 'max:255'],
             'device_name' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -57,6 +58,7 @@ class AuthController extends Controller
             'address' => $request->string('address'),
             'valid_id_url' => Storage::url($request->file('valid_id_file')->store('valid-ids', 'public')),
             'valid_id_type' => $request->string('valid_id_type'),
+            'valid_id_number' => $request->string('valid_id_number')->toString() ?: null,
             'status' => 'pending',
         ]);
 

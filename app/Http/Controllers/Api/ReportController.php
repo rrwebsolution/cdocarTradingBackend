@@ -11,6 +11,7 @@ use App\Models\SalesTransaction;
 use App\Models\ServiceRequest;
 use App\Models\SystemDocument;
 use App\Models\Vehicle;
+use App\Support\PdfLogo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -168,6 +169,7 @@ class ReportController extends Controller
             'rows' => $rows,
             'status' => $request->query('status'),
             'to' => $request->query('to'),
+            'logoBase64' => PdfLogo::base64(),
         ])->setPaper('legal', 'landscape');
 
         return $pdf->stream("{$filename}.pdf");

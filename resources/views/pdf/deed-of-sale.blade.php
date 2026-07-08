@@ -28,6 +28,12 @@
             margin-top: 4px;
         }
 
+        .pdf-logo {
+            display: block;
+            height: 56px;
+            margin: 0 auto 6px;
+        }
+
         .meta {
             margin-top: 24px;
             text-align: right;
@@ -78,8 +84,7 @@
     </style>
 </head>
 <body>
-    <h1>Deed of Sale</h1>
-    <h2>CDO Car Trading</h2>
+    @include('pdf.partials.header', ['title' => 'Deed of Sale', 'logoBase64' => $logoBase64 ?? null])
 
     <div class="meta">
         <div><span class="label">Reference:</span> {{ $deed->reference }}</div>

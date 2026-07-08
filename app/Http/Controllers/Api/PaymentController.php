@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\CrudResponses;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Support\PaymentMethod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
@@ -67,7 +69,7 @@ class PaymentController extends Controller
         return $request->validate([
             'amount' => [$updating ? 'sometimes' : 'required', 'numeric', 'min:0'],
             'customer_id' => [$updating ? 'sometimes' : 'required', 'exists:customers,id'],
-            'method' => ['nullable', 'string', 'max:255'],
+            'method' => ['nullable', Rule::in(PaymentMethod::ALL)],
             'paid_at' => ['nullable', 'date'],
             'proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'proof_url' => ['nullable', 'string', 'max:2048'],

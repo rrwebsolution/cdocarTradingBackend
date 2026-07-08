@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SalesInvoice;
 use App\Models\SalesTransaction;
+use App\Support\PdfLogo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -25,6 +26,7 @@ class SalesInvoiceController extends Controller
         $pdf = Pdf::loadView('pdf.sales-invoice', [
             'invoice' => $invoice,
             'document' => $invoice->document_data,
+            'logoBase64' => PdfLogo::base64(),
         ])->setPaper('legal');
 
         return $pdf->stream($invoice->reference.'.pdf');

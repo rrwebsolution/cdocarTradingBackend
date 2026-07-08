@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\Concerns\CrudResponses;
 use App\Http\Controllers\Controller;
 use App\Models\SalesTransaction;
+use App\Support\PaymentMethod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SalesTransactionController extends Controller
 {
@@ -62,7 +64,7 @@ class SalesTransactionController extends Controller
             'customer_id' => [$updating ? 'sometimes' : 'required', 'exists:customers,id'],
             'financing_details' => ['nullable', 'array'],
             'paid_amount' => ['nullable', 'numeric', 'min:0'],
-            'payment_method' => ['nullable', 'string', 'max:255'],
+            'payment_method' => ['nullable', Rule::in(PaymentMethod::ALL)],
             'reference' => [$updating ? 'sometimes' : 'required', 'string', 'max:255'],
             'reservation_id' => ['nullable', 'exists:reservations,id'],
             'sold_at' => ['nullable', 'date'],

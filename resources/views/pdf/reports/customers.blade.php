@@ -8,6 +8,7 @@
         h1, h2 { margin: 0; text-align: center; }
         h1 { font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
         h2 { color: #0e7490; font-size: 13px; margin-top: 4px; }
+        .pdf-logo { display: block; height: 48px; margin: 0 auto 6px; }
         .meta { margin-top: 16px; display: flex; justify-content: space-between; font-size: 10px; color: #374151; }
         table { border-collapse: collapse; margin-top: 14px; width: 100%; }
         td, th { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; vertical-align: top; }
@@ -16,8 +17,7 @@
     </style>
 </head>
 <body>
-    <h1>Customer Report</h1>
-    <h2>CDO Car Trading</h2>
+    @include('pdf.partials.header', ['title' => 'Customer Report', 'logoBase64' => $logoBase64 ?? null])
 
     <div class="meta">
         <span>Generated: {{ now()->format('F d, Y g:i A') }}</span>

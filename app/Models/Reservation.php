@@ -14,12 +14,17 @@ class Reservation extends Model
         'reference',
         'customer_id',
         'vehicle_id',
+        'financing_record_id',
         'amount',
         'payment_method',
+        'proof_of_payment_url',
+        'payment_reference_number',
         'reserved_at',
         'expires_at',
         'status',
         'remarks',
+        'verified_by',
+        'verified_at',
     ];
 
     protected function casts(): array
@@ -28,6 +33,7 @@ class Reservation extends Model
             'amount' => 'decimal:2',
             'expires_at' => 'date',
             'reserved_at' => 'date',
+            'verified_at' => 'date',
         ];
     }
 
@@ -39,5 +45,10 @@ class Reservation extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function financingRecord(): BelongsTo
+    {
+        return $this->belongsTo(FinancingRecord::class);
     }
 }
